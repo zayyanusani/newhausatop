@@ -62,3 +62,9 @@ end; $$;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_user();
+
+create policy "authors can read own articles" on public.articles
+  for select to authenticated using (author_id = (select auth.uid()));
+
+create policy "editors can read all articles" on public.articles
+  for select to authenticated using (exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role in ('editor','admin')));
