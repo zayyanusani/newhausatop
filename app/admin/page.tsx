@@ -58,7 +58,6 @@ export default async function AdminPage() {
           <input name="slug" required placeholder="slug-labari" />
           <input name="category" required placeholder="Najeriya / Duniya / Fasaha & AI" />
           <ImageUpload inputName="image_url" />
-          <input name="image_url" placeholder="Ko saka URL na hoto" />
           <textarea name="excerpt" placeholder="Takaitaccen bayani" />
           <textarea name="content" required placeholder="Cikakken labari" rows={10} />
           <button className="primary">Ajiye a Draft</button>
