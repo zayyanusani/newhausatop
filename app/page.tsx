@@ -1,23 +1,27 @@
-"use client";
-import {useMemo,useState} from "react";
-const stories=[
-{cat:"Najeriya",title:"Sabbin labarai daga Najeriya: abubuwan da ke faruwa a yau",time:"Minti 12 da suka wuce",img:"https://images.unsplash.com/photo-1523731407965-2430cd12f5e4?auto=format&fit=crop&w=1200&q=80"},
-{cat:"Fasaha & AI",title:"AI na sauya yadda ake aiki, koyo da kirkirar sabbin abubuwa",time:"Minti 28 da suka wuce",img:"https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1000&q=80"},
-{cat:"Duniya",title:"Manyan abubuwan da ke faruwa a duniya a wannan makon",time:"Minti 45 da suka wuce",img:"https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=1000&q=80"},
-{cat:"Wasanni",title:"Wasanni: sakamakon yau da manyan abubuwan da ake jira",time:"Awa 1 da ta wuce",img:"https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1000&q=80"}
-];
+import Image from "next/image";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+
 const cats=["Duka","Najeriya","Duniya","Fasaha & AI","Wasanni","Labarin Hausa"];
-export default function Home(){const [dark,setDark]=useState(false);const [q,setQ]=useState("");const [cat,setCat]=useState("Duka");const filtered=useMemo(()=>stories.filter(s=>(cat==="Duka"||s.cat===cat)&&s.title.toLowerCase().includes(q.toLowerCase())),[q,cat]);return <main className={dark?"dark":""}>
-<div className="topline"><div>🔴 <b>BREAKING NEWS</b> — Barka da zuwa NewHausaTop</div><div className="date">Asabar, 26 Satumba 2026</div></div>
-<header><div className="brand"><span className="mark">N</span><div><strong>NewHausaTop</strong><small>Labaran Hausa na zamani</small></div></div><div className="actions"><label className="search">⌕<input value={q} onChange={e=>setQ(e.target.value)} placeholder="Nemo labari..." /></label><button onClick={()=>setDark(!dark)} aria-label="Canza yanayin launi">{dark?"☀️":"🌙"}</button></div></header>
-<nav>{cats.map(c=><button className={cat===c?"active":""} onClick={()=>setCat(c)} key={c}>{c}</button>)}</nav>
-<section className="ticker"><span>⚡ SABO</span><div>NewHausaTop na kawo maka labarai, fasaha, AI, wasanni da abubuwan duniya cikin Hausa.</div></section>
-<div className="ad">ADVERTISEMENT</div>
-<section className="hero"><div className="heroText"><span className="pill">{stories[0].cat}</span><h1>{stories[0].title}</h1><p>Karanta cikakken bayani, mahimman abubuwa da sabbin bayanai cikin Hausa mai saukin fahimta.</p><button className="primary">Karanta labari →</button></div><img src={stories[0].img} alt="" /></section>
-<div className="sectionHead"><h2>Sabbin Labarai</h2><span>{filtered.length} labarai</span></div>
-<div className="layout"><section className="grid">{filtered.slice(1).map((s,i)=><article className="card" key={s.title}><img src={s.img} alt="" /><div className="cardBody"><span>{s.cat}</span><h3>{s.title}</h3><small>{s.time}</small><div className="share"><button onClick={()=>navigator.clipboard?.writeText(location.href)}>🔗 Kwafi</button><a target="_blank" href={"https://wa.me/?text="+encodeURIComponent(s.title+" — NewHausaTop")}>WhatsApp</a><a target="_blank" href={"https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(location.href)}>Facebook</a></div></div></article>)}</section>
-<aside><div className="sideBox"><h3>🔥 Trending News</h3>{stories.map((s,i)=><div className="trend" key={s.title}><b>0{i+1}</b><div><strong>{s.title}</strong><small>{s.time}</small></div></div>)}</div><div className="sideAd">ADVERTISEMENT</div></aside></div>
-<div className="ad">ADVERTISEMENT</div>
-<section className="topics"><h2>Manyan Sassa</h2><div>{cats.slice(1).map(c=><button key={c} onClick={()=>setCat(c)}>{c} <span>→</span></button>)}</div></section>
-<footer><div><div className="brand"><span className="mark">N</span><strong>NewHausaTop</strong></div><p>Gidan labaran Hausa na zamani — Najeriya, Duniya, AI, Fasaha da Wasanni.</p></div><div><b>Raba mu</b><p>Facebook · WhatsApp · X</p></div><div><b>Tuntuɓe mu</b><p>Sabbin labarai kullum</p></div></footer>
-</main>}
+
+export default async function Home(){
+  const supabase=await createClient();
+  const {data:stories,error}=await supabase.from("articles").select("slug,title,excerpt,category,image_url,published_at").eq("status","published").order("published_at",{ascending:false}).limit(12);
+  const items=stories??[];
+  const featured=items[0];
+  return <main>
+    <div className="topline"><div>🔴 <b>BREAKING NEWS</b> — Barka da zuwa NewHausaTop</div><div className="date">Sabbin labarai kullum</div></div>
+    <header><Link className="brand" href="/"><span className="mark">N</span><div><strong>NewHausaTop</strong><small>Labaran Hausa na zamani</small></div></Link><div className="actions"><form className="search" action="/search"><span>⌕</span><input name="q" placeholder="Nemo labari..." /></form><Link href="/admin">Admin</Link></div></header>
+    <nav>{cats.map(c=><Link className={c==="Duka"?"active":""} href={c==="Duka"?"/":"/category/"+encodeURIComponent(c)} key={c}>{c}</Link>)}</nav>
+    <section className="ticker"><span>⚡ SABO</span><div>NewHausaTop na kawo maka labarai, fasaha, AI, wasanni da abubuwan duniya cikin Hausa.</div></section>
+    <div className="ad">ADVERTISEMENT</div>
+    {error&&<div className="ad">An samu matsala wajen loda labarai. A duba Supabase environment variables.</div>}
+    {featured ? <section className="hero"><div className="heroText"><span className="pill">{featured.category}</span><h1>{featured.title}</h1><p>{featured.excerpt}</p><Link className="primary" href={"/news/"+featured.slug}>Karanta labari →</Link></div>{featured.image_url&&<Image src={featured.image_url} alt={featured.title} width={1200} height={700} priority/>}</section> : <section className="hero"><div className="heroText"><span className="pill">NewHausaTop</span><h1>Babu labarin da aka wallafa tukuna</h1><p>Shiga /admin ka kirkiri sabon labari, sannan ka wallafa shi daga CMS.</p><Link className="primary" href="/admin">Je zuwa Admin →</Link></div></section>}
+    <div className="sectionHead"><h2>Sabbin Labarai</h2><span>{items.length} labarai</span></div>
+    <div className="layout"><section className="grid">{items.slice(featured?1:0).map(s=><article className="card" key={s.slug}>{s.image_url&&<Image src={s.image_url} alt={s.title} width={700} height={400}/>}<div className="cardBody"><span>{s.category}</span><h3><Link href={"/news/"+s.slug}>{s.title}</Link></h3><small>{s.published_at?new Date(s.published_at).toLocaleDateString("ha-NG"):""}</small></div></article>)}</section>
+    <aside><div className="sideBox"><h3>🔥 Trending News</h3>{items.slice(0,5).map((s,i)=><div className="trend" key={s.slug}><b>0{i+1}</b><div><Link href={"/news/"+s.slug}><strong>{s.title}</strong></Link></div></div>)}</div><div className="sideAd">ADVERTISEMENT</div></aside></div>
+    <div className="ad">ADVERTISEMENT</div>
+    <section className="topics"><h2>Manyan Sassa</h2><div>{cats.slice(1).map(c=><Link href={"/category/"+encodeURIComponent(c)} key={c}>{c} <span>→</span></Link>)}</div></section>
+    <footer><div><div className="brand"><span className="mark">N</span><strong>NewHausaTop</strong></div><p>Gidan labaran Hausa na zamani — Najeriya, Duniya, AI, Fasaha da Wasanni.</p></div><div><b>Raba mu</b><p>Facebook · WhatsApp · X</p></div><div><b>Tuntuɓe mu</b><p>Sabbin labarai kullum</p></div></footer>
+  </main>
+}
