@@ -31,7 +31,6 @@ export default function ImageUpload({ inputName }: Props) {
         .upload(path, file, { contentType: file.type, upsert: false });
 
       if (uploadError) throw uploadError;
-
       const { data } = supabase.storage.from("news-images").getPublicUrl(path);
       setUrl(data.publicUrl);
     } catch (e) {
@@ -43,7 +42,7 @@ export default function ImageUpload({ inputName }: Props) {
 
   return (
     <div className="uploadBox">
-      <label>Hoton labari</label>
+      <label>Hoton labari — upload ko URL</label>
       <input
         type="file"
         accept="image/jpeg,image/png,image/webp"
@@ -53,7 +52,12 @@ export default function ImageUpload({ inputName }: Props) {
           if (file) void upload(file);
         }}
       />
-      <input type="hidden" name={inputName} value={url} readOnly />
+      <input
+        name={inputName}
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        placeholder="https://.../hoton.jpg"
+      />
       {uploading && <small>Ana tura hoto...</small>}
       {url && <small className="uploadSuccess">✓ An shirya hoton</small>}
       {error && <small className="uploadError">{error}</small>}
