@@ -1,0 +1,1 @@
+import Link from "next/link";export default function NotFound(){return <main><div className="categoryPage"><h1>Ba a sami labarin ba</h1><p>Wannan shafin labari baya nan ko an cire shi.</p><Link className="read" href="/">← Komawa NewHausaTop</Link></div></main>}
